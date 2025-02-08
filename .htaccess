@@ -1,0 +1,9 @@
+# Allow direct access to PHP files
+RewriteEngine On
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Optional: Redirect other requests for a clean API structure
+RewriteRule ^/([^/]+)$ $1.php [L]
