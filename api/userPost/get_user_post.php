@@ -8,7 +8,7 @@ include('../lib/db.php');
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
-    $sql = "SELECT * FROM RecyclePost";
+    $sql = "SELECT * FROM Posts";
     $result = mysqli_query($con, $sql);
 
     if ($result) {
@@ -18,9 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $data[] = $row;
         }
 
-        echo json_encode($data);
+        echo json_encode(['success' => true, 'message' => 'successfully work', 'data' => $data]);
     } else {
-        echo json_encode(['success' => false, 'error' => 'Database query failed']);
+        echo json_encode(['success' => false, 'message' => 'Database query failed']);
     }
 } else {
     // Return error response with detailed MySQL error

@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $userId = $row['user_id'];
 
         // Insert feedback into the Feedback table
-        $query = "INSERT INTO `Posts` (user_id, title, content, picture, ) 
+        $query = "INSERT INTO `Posts` (user_id, title, content, picture ) 
                     VALUES ('$userId', '$title', '$description', '$picture')";
 
         if (mysqli_query($con, $query)) {
