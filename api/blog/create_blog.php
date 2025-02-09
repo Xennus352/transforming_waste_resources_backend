@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Sanitize input data
     $title = mysqli_real_escape_string($con, $data['title']);
     $description = mysqli_real_escape_string($con, $data['description']);
+    $description_burmese = mysqli_real_escape_string($con, $data['description_burmese']);
     $imgUrl = mysqli_real_escape_string($con, $data['imgUrl']);
 
 
@@ -50,8 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $userId = $row['user_id'];
 
         // Insert wasteInformation into the WasteInfo table
-        $query = "INSERT INTO `WasteInfo` (user_id, title,description,  waste_pic ) 
-                  VALUES ('$userId', '$title','$description', '$waste_pic')";
+        $query = "INSERT INTO `WasteInfo` (user_id, title,description , description_burmese,  waste_pic ) 
+                  VALUES ('$userId', '$title','$description', '$description_burmese' , '$imgUrl')";
 
         if (mysqli_query($con, $query)) {
             // Return success response

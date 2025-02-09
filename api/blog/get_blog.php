@@ -8,7 +8,7 @@ include('../lib/db.php');
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
-    $sql = "SELECT * FROM Feedback";
+    $sql = "SELECT * FROM WasteInfo";
     $result = mysqli_query($con, $sql);
 
     if ($result) {
