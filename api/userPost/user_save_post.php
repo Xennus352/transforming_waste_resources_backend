@@ -6,10 +6,7 @@ header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json');
 include('../lib/db.php');
 
-
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-
     // Retrieve session token from the request headers
     $headers = apache_request_headers();
     $sessionToken = isset($headers['Authorization']) ? $headers['Authorization'] : null;
@@ -26,7 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Decode the incoming JSON data from the request body
     $data = json_decode(file_get_contents("php://input"), true);
 
-    $userId = mysqli_real_escape_string($con, $data['userId']);
+    // Sanitize input data
+    $postId = mysqli_real_escape_string($con, $data['id']);
+
 
     // Get the user_id from UserSessions table using session_token
     $getCurrentUser = "SELECT user_id FROM `UserSessions` WHERE session_token = '$sessionToken'";
@@ -38,27 +37,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $userId = $row['user_id'];
 
         // Insert feedback into the Feedback table
-        $query = "DELETE FROM `UserSessions` WHERE user_id= $userId";
+        $query = "INSERT INTO `SavedPosts` ( post_id ,user_id ) 
+                    VALUES ( '$postId','$userId')";
 
         if (mysqli_query($con, $query)) {
             // Return success response
             echo json_encode([
                 'status' => 200,
                 'success' => true,
-                'message' => 'Log out successfully.',
+                'message' => 'Post saved successfully.',
             ]);
         } else {
             // Return error response with detailed MySQL error
             echo json_encode([
                 'status' => 500,
                 'success' => false,
-                'message' => 'Failed to Logout.',
+                'message' => 'Failed to save Post.',
                 'error' => 'Query failed: ' . mysqli_error($con),
                 'query' => $query
             ]);
         }
+    } else {
+        // Return error response if session token not found
+        echo json_encode([
+            'status' => 400,
+            'success' => false,
+            'message' => 'Invalid session token.',
+        ]);
     }
-} else {
-    // Invalid request method
-    echo json_encode(['message' => 'Invalid request method']);
 }
