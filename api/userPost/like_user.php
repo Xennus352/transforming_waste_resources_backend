@@ -6,7 +6,7 @@ header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json');
 include('../lib/db.php');
 
-if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Retrieve session token from the request headers
     $headers = apache_request_headers();
     $sessionToken = isset($headers['Authorization']) ? $headers['Authorization'] : null;
@@ -17,12 +17,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             'success' => false,
             'message' => 'Session token is required.',
         ]);
-
         exit;
     }
 
+    // Decode the incoming JSON data from the request body
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    // Sanitize input data
+    $postId = mysqli_real_escape_string($con, $data['id']);
+
+
     // Get the user_id from UserSessions table using session_token
-    $getCurrentUser  = "SELECT user_id FROM `UserSessions` WHERE session_token = '$sessionToken'";
+    $getCurrentUser = "SELECT user_id FROM `UserSessions` WHERE session_token = '$sessionToken'";
     $result = mysqli_query($con, $getCurrentUser);
 
     if (mysqli_num_rows($result) > 0) {
@@ -30,35 +36,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         $row = mysqli_fetch_assoc($result);
         $userId = $row['user_id'];
 
-        // Query to get saved posts for the current user
-        $sql = "SELECT p.id, p.title, p.content, p.picture, p.created_at
-            FROM SavedPosts sp
-            JOIN Posts p ON sp.post_id = p.id
-            WHERE sp.user_id =  $userId";
-        $currentUserSavedPost = mysqli_query($con, $sql);
+        // Insert feedback into the Feedback table
+        $query = "INSERT INTO `Likes` ( post_id ,user_id ) 
+                    VALUES ( '$postId','$userId')";
 
-        if (mysqli_num_rows($currentUserSavedPost) > 0) {
-            $data = array();
-
-            while ($row = mysqli_fetch_assoc($currentUserSavedPost)) {
-                $data[] = $row;
-            }
-
-            echo json_encode(['success' => true, 'message' => 'Successfully retrieved saved posts', 'data' => $data]);
+        if (mysqli_query($con, $query)) {
+            // Return success response
+            echo json_encode([
+                'status' => 200,
+                'success' => true,
+                'message' => 'Liked.',
+            ]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Database query failed']);
+            // Return error response with detailed MySQL error
+            echo json_encode([
+                'status' => 500,
+                'success' => false,
+                'message' => 'Failed .',
+                'error' => 'Query failed: ' . mysqli_error($con),
+                'query' => $query
+            ]);
         }
     } else {
         // Return error response if session token not found
         echo json_encode([
+            'status' => 400,
             'success' => false,
             'message' => 'Invalid session token.',
         ]);
     }
-} else {
-    // Return error response for unsupported request methods
-    echo json_encode([
-        'success' => false,
-        'message' => 'Unsupported request method.',
-    ]);
 }

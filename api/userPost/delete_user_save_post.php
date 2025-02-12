@@ -1,12 +1,12 @@
 <?php
 // Allow cross-origin requests
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+header('Access-Control-Allow-Methods: POST, GET, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json');
 include('../lib/db.php');
 
-if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
     // Retrieve session token from the request headers
     $headers = apache_request_headers();
     $sessionToken = isset($headers['Authorization']) ? $headers['Authorization'] : null;
@@ -17,12 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             'success' => false,
             'message' => 'Session token is required.',
         ]);
-
         exit;
     }
 
     // Get the user_id from UserSessions table using session_token
-    $getCurrentUser  = "SELECT user_id FROM `UserSessions` WHERE session_token = '$sessionToken'";
+    $getCurrentUser   = "SELECT user_id FROM `UserSessions` WHERE session_token = '$sessionToken'";
     $result = mysqli_query($con, $getCurrentUser);
 
     if (mysqli_num_rows($result) > 0) {
@@ -30,23 +29,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         $row = mysqli_fetch_assoc($result);
         $userId = $row['user_id'];
 
-        // Query to get saved posts for the current user
-        $sql = "SELECT p.id, p.title, p.content, p.picture, p.created_at
-            FROM SavedPosts sp
-            JOIN Posts p ON sp.post_id = p.id
-            WHERE sp.user_id =  $userId";
-        $currentUserSavedPost = mysqli_query($con, $sql);
+        // Get the post_id from the request body
+        $input = json_decode(file_get_contents('php://input'), true);
+        $postId = $input['post_id'];
 
-        if (mysqli_num_rows($currentUserSavedPost) > 0) {
-            $data = array();
+        if (!$postId) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Post ID is required.',
+            ]);
+            exit;
+        }
 
-            while ($row = mysqli_fetch_assoc($currentUserSavedPost)) {
-                $data[] = $row;
-            }
-
-            echo json_encode(['success' => true, 'message' => 'Successfully retrieved saved posts', 'data' => $data]);
+        // Query to delete the saved post for the current user
+        $sql = "DELETE FROM SavedPosts WHERE user_id = $userId AND post_id = $postId";
+        if (mysqli_query($con, $sql)) {
+            echo json_encode(['success' => true, 'message' => 'Post successfully deleted.']);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Database query failed']);
+            echo json_encode(['success' => false, 'message' => 'Failed to delete the post.' . $postId]);
         }
     } else {
         // Return error response if session token not found
