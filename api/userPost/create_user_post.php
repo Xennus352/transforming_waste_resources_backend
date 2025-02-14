@@ -4,10 +4,12 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json');
+
 include('../lib/db.php');
 
+// Check request method
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Retrieve session token from the request headers
+    // Retrieve session token from headers
     $headers = apache_request_headers();
     $sessionToken = isset($headers['Authorization']) ? $headers['Authorization'] : null;
 
@@ -20,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
-    // Decode the incoming JSON data from the request body
+    // Decode incoming JSON data
     $data = json_decode(file_get_contents("php://input"), true);
 
     // Sanitize input data
@@ -47,29 +49,52 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $row = mysqli_fetch_assoc($result);
         $userId = $row['user_id'];
 
-        // Insert feedback into the Feedback table
-        $query = "INSERT INTO `Posts` (user_id, title, content, picture ) 
+        // Insert post into the Posts table
+        $query = "INSERT INTO `Posts` (user_id, title, content, picture) 
                     VALUES ('$userId', '$title', '$description', '$picture')";
 
         if (mysqli_query($con, $query)) {
+            // Get new post count
+            $countQuery = "SELECT COUNT(*) AS newPosts FROM `Posts` WHERE created_at >= NOW() - INTERVAL 10 MINUTE";
+            $countResult = mysqli_query($con, $countQuery);
+            $newPostCount = mysqli_fetch_assoc($countResult)['newPosts'];
+
+            // Emit WebSocket event to notify users
+            $postData = [
+                'title' => $title,
+                'content' => $description,
+                'picture' => $picture,
+                'newPostCount' => $newPostCount
+            ];
+
+            // Send WebSocket request to notify users
+            $socketUrl = "http://localhost:5000/notify";
+            $socketData = json_encode(['event' => 'newPost', 'data' => $newPostCount]);
+
+            $ch = curl_init($socketUrl);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $socketData);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            curl_exec($ch);
+            curl_close($ch);
+
             // Return success response
             echo json_encode([
                 'status' => 201,
                 'success' => true,
                 'message' => 'Post created successfully.',
+                'newPostCount' => $newPostCount
             ]);
         } else {
-            // Return error response with detailed MySQL error
             echo json_encode([
                 'status' => 500,
                 'success' => false,
-                'message' => 'Failed to insert Post.',
-                'error' => 'Query failed: ' . mysqli_error($con),
+                'message' => 'Failed to insert post.',
+                'error' => mysqli_error($con),
                 'query' => $query
             ]);
         }
     } else {
-        // Return error response if session token not found
         echo json_encode([
             'status' => 400,
             'success' => false,
@@ -77,3 +102,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ]);
     }
 }
+?>
