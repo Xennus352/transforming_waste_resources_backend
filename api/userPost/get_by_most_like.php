@@ -36,6 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                     P.id AS post_id,
                     P.title AS post_title,
                     P.content AS post_content,
+                    P.picture AS post_picture,
+                    P.contentInBurmese As post_contentInBurmese, 
                     COALESCE(total_likes.total_like_count, 0) AS total_like_count,
                     GROUP_CONCAT(DISTINCT L.user_id) AS liked_by_users
                 FROM 
@@ -51,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                 GROUP BY 
                     P.id, P.title, P.content
                 ORDER BY 
-                    P.id";
+                    total_like_count DESC";
 
         $likedCount = mysqli_query($con, $sql);
 

@@ -26,20 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = json_decode(file_get_contents("php://input"), true);
 
     // Sanitize input data
-    $title = mysqli_real_escape_string($con, $data['title']);
-    $category = mysqli_real_escape_string($con, $data['category']);
-    $description = mysqli_real_escape_string($con, $data['description']);
-    $picture = mysqli_real_escape_string($con, $data['picture']);
+    $id = mysqli_real_escape_string($con, $data['id']);
 
-    // Check if any required field is empty
-    if (empty($title) || empty($description) || empty($picture)) {
-        echo json_encode([
-            'status' => 400,
-            'success' => false,
-            'message' => 'All fields are required.',
-        ]);
-        exit;
-    }
 
     // Get the user_id from UserSessions table using session_token
     $getCurrentUser = "SELECT user_id FROM `UserSessions` WHERE session_token = '$sessionToken'";
@@ -51,8 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $userId = $row['user_id'];
 
         // Insert post into the Posts table
-        $query = "INSERT INTO `Posts` (user_id, title, content, picture, category) 
-                    VALUES ('$userId', '$title', '$description', '$picture', '$category')";
+        $query = "UPDATE Posts
+                    SET isApprove = 1
+                    WHERE id = '$id'";
 
         if (mysqli_query($con, $query)) {
             // Get new post count
@@ -83,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo json_encode([
                 'status' => 201,
                 'success' => true,
-                'message' => 'Post created successfully.',
+                'message' => 'Successful.',
                 'newPostCount' => $newPostCount
             ]);
         } else {
@@ -103,4 +92,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ]);
     }
 }
-?>
