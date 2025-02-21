@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         // $userId = '6';
 
         // Query to get comment posts 
-        $sql = "SELECT 
+        $sql = "  SELECT 
                         u.id AS user_id, 
                         u.username AS user_name, 
                         u.picture AS user_pic,
