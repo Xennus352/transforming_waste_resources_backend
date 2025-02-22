@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $data[] = $row;
         }
 
-        echo json_encode($data);
+        echo json_encode(['success' => true, 'data' => $data]);
     } else {
         echo json_encode(['success' => false, 'error' => 'Database query failed']);
     }
