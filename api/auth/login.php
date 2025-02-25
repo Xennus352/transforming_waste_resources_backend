@@ -49,14 +49,14 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
             $createdAt = ($createdAtHour * 3600) + ($createdAtMinute * 60);
 
             // Get the expiration time in seconds since midnight
-            $expiresAtHour = date('H', $expiresAtUnix);
-            $expiresAtMinute = date('i', $expiresAtUnix);
-            $expiresAt = ($expiresAtHour * 3600) + ($expiresAtMinute * 60);
+            // $expiresAtHour = date('H', $expiresAtUnix);
+            // $expiresAtMinute = date('i', $expiresAtUnix);
+            // $expiresAt = ($expiresAtHour * 3600) + ($expiresAtMinute * 60);
 
             // Insert session into the database
             $insertSessionQuery = "
-                 INSERT INTO UserSessions (user_id, session_token, created_at, expires_at) 
-                 VALUES ('{$row['id']}', '$sessionToken', '$createdAt', '$expiresAt')
+                 INSERT INTO UserSessions (user_id, session_token, created_at) 
+                 VALUES ('{$row['id']}', '$sessionToken', '$createdAt')
              ";
             if (mysqli_query($con, $insertSessionQuery)) {
                 // Return the session token
@@ -65,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
                     'success' => true,
                     'message' => 'Login successful',
                     'session_token' => $sessionToken,
-                    'tokenExpiration' => $expiresAt
+                    //  'tokenExpiration' => $expiresAt
                 ]);
             } else {
                 echo json_encode([

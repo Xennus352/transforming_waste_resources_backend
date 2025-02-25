@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $unHashpassword = mysqli_real_escape_string($con, $data['password']);
     $password = hash('sha256', $unHashpassword);
-    $query = "INSERT INTO `Users` (username,email,picture,password,role) VALUES ('$username','$email','pic','$password','user')";
+    $query = "INSERT INTO `Users` (username,email,picture,password,role) VALUES ('$username','$email','','$password','user')";
     if (mysqli_query($con, $query)) {
         // Return success response
         echo json_encode([

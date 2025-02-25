@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $row = mysqli_fetch_assoc($result);
         $userId = $row['user_id'];
 
-        // Insert feedback into the Feedback table
+        // Delete session into the user session table
         $query = "DELETE FROM `UserSessions` WHERE user_id= $userId";
 
         if (mysqli_query($con, $query)) {
