@@ -58,6 +58,9 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
                  INSERT INTO UserSessions (user_id, session_token, created_at) 
                  VALUES ('{$row['id']}', '$sessionToken', '$createdAt')
              ";
+
+
+           
             if (mysqli_query($con, $insertSessionQuery)) {
                 // Return the session token
                 echo json_encode([
@@ -65,6 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
                     'success' => true,
                     'message' => 'Login successful',
                     'session_token' => $sessionToken,
+                   
                     //  'tokenExpiration' => $expiresAt
                 ]);
             } else {
