@@ -3,8 +3,8 @@ header('Content-Type: application/json');
 
 // Database credentials
 $hostname = "localhost";
-$username = "smk";
-$password = "smk";
+$username = "root";
+$password = "root";
 $dbname = "transforming_waste_into_resources";
 
 // Establish database connection
